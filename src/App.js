@@ -32,6 +32,8 @@ const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'
 
 const N_GRAM = 5;
 
+const RIGHT_ARROW_CODE = 39;
+const LEFT_ARROW_CODE = 37;
 const LOWERCASE_A_CODE = 97;
 const DASH = '-';
 const BACKSPACE_CODE = 8;
@@ -476,6 +478,10 @@ class App extends React.Component {
       } else if(event.which === DEL_CODE || event.which === BACKSPACE_CODE) {
           this.updateKeyVal('', this.state.activeIdx);
           this.updateActiveIdx((this.state.activeIdx - 1) % LEN_ALPHABET);
+      } else if(event.which === LEFT_ARROW_CODE) {
+          this.updateActiveIdx((this.state.activeIdx - 1) % LEN_ALPHABET);
+      } else if(event.which === RIGHT_ARROW_CODE) {
+          this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
       }
     }
   }
