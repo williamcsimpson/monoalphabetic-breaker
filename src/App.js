@@ -26,8 +26,11 @@ import {
   Next,
 } from 'grommet-icons'
 
-const TEMP_LETTERS = ['A', 'B', 'C', '-', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const UPPERCASE_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const LOWERCASE_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+
+const N_GRAM = 5;
 
 const A_CODE = 65;
 const Z_CODE = 90;
@@ -51,115 +54,7 @@ const theme = {
     },
   },
 };
-/*
-class KeyDisplay extends React.Component {
-  constructor(props) {
-    super(props);
 
-    let fillVals = Array(LEN_ALPHABET).fill(true);
-
-    for(let i = 0; i < LEN_ALPHABET; i++) {
-      let char = 0;
-      if(props.decrypt){
-        char = props.plaintext[i].charCodeAt(0);
-      } else {
-        char = props.cyphertext[i].toUpperCase().charCodeAt(0);
-      }
-      if(A_CODE <= char && char <= Z_CODE) {
-        fillVals[char-A_CODE] = false;
-      }
-    }
-
-    this.state = {
-      decrypt:props.decrypt,
-      cyphertext:props.cyphertext,
-      plaintext:props.plaintext,
-      onClick:props.onClick,
-      fill:fillVals
-    };
-  }
-
-  renderLabel() {
-    return(
-      <Box>
-        <Box
-          border='true'
-          alignContent='center'
-          justify='center'
-        >
-          <Text>PLAINTEXT</Text>
-        </Box>
-        <Box
-          border='true'
-          alignContent='center'
-          justify='center'
-        >
-          <Text>cyphertext</Text>
-        </Box>
-      </Box>
-    )
-  }
-
-  renderDisplayBox(i) {
-    return (
-      <Box
-        border='true'
-        alignContent='center'
-        justify='center'
-        align='center'
-        background={this.state.fill[i] ? 'light-4': ''}
-      >
-        <Text>{ this.state.decrypt ? this.state.cyphertext[i]: this.state.plaintext[i]}</Text>
-      </Box>
-
-    );
-  }
-  renderUIBox(i) {
-    return (
-      <Box
-        onClick={()=>(this.state.onClick(i))}
-        border='true'
-        alignContent='center'
-        justify='center'
-        align='center'
-      >
-        <Text>{this.state.decrypt ? this.state.plaintext[i] : this.state.cyphertext[i]}</Text>
-      </Box>
-
-    );
-  }
-
-  renderCol(i) {
-    if(this.state.decrypt) {
-      return(
-        <Box>
-          {this.renderUIBox(i)}
-          {this.renderDisplayBox(i)}
-        </Box>
-      );
-    }
-    return(
-      <Box>
-        {this.renderDisplayBox(i)}
-        {this.renderUIBox(i)}
-      </Box>
-    );
-  }
-
-  render() {
-    let key = [];
-    for(let i =0; i < LEN_ALPHABET; i++){
-      key.push(this.renderCol(i));
-    }
-    return(
-      <Box direction='row'>
-        {this.renderLabel()}
-        {key}
-      </Box>
-    );
-  }
-}
-*/
 /* ----------------------------------------------- */
 
 function KeyDisplay(props) {
@@ -167,11 +62,7 @@ function KeyDisplay(props) {
 
     for(let i = 0; i < LEN_ALPHABET; i++) {
       let char = 0;
-      if(props.decrypt){
-        char = props.plaintext[i].charCodeAt(0);
-      } else {
-        char = props.cyphertext[i].toUpperCase().charCodeAt(0);
-      }
+      char = props.keyVal[i].toUpperCase().charCodeAt(0);
       if(A_CODE <= char && char <= Z_CODE) {
         fillVals[char-A_CODE] = false;
       }
@@ -179,7 +70,11 @@ function KeyDisplay(props) {
     
     let key = [];
     for(let i =0; i < LEN_ALPHABET; i++){
-      key.push(renderCol(i, props.plaintext[i], props.cyphertext[i], fillVals[i], props.decrypt, props.onClick));
+      if(props.decrypt) {
+          key.push(renderCol(i, props.keyVal[i], LOWERCASE_LETTERS[i], fillVals[i], props.decrypt, props.onClick));
+      } else {
+          key.push(renderCol(i,UPPERCASE_LETTERS[i], props.keyVal[i], fillVals[i], props.decrypt, props.onClick));
+      }
     }
     return(
       <Box direction='row'>
@@ -334,8 +229,8 @@ function HomeGrid(props) {
     >
       <Box gridArea='text'> 
        <TextArea
-          onChange = {props.handleMessageEdit}
-          value = {props.message}
+          onChange = {props.handleEditMessage}
+          value = {props.displayMessage}
           placeholder="Type message here..."
           resize={false}
           fill={true}
@@ -347,8 +242,7 @@ function HomeGrid(props) {
       <Box gridArea='key'>
         <KeyDisplay 
           decrypt={props.decrypt}
-          plaintext={props.plaintext}
-          cyphertext={props.cyphertext}
+          keyVal={props.keyVal}
           onClick={props.handleKeyDisplay}
 
         />
@@ -456,10 +350,10 @@ function BreakGrid(props) {
         <ResultTable 
           onChange={props.handleSelectSearch}
           selectedButton={props.selectedButton}
-          pattern={TEMP_LETTERS}
-          chisquare={TEMP_LETTERS}
-          freq={TEMP_LETTERS}
-          conflict={TEMP_LETTERS}
+          pattern={UPPERCASE_LETTERS}
+          chisquare={UPPERCASE_LETTERS}
+          freq={UPPERCASE_LETTERS}
+          conflict={UPPERCASE_LETTERS}
         />
       </Box>
     </Grid>
@@ -469,13 +363,36 @@ function BreakGrid(props) {
 class App extends React.Component {
   constructor(props) {
     super(props);
+
+    document.addEventListener('keyup', (event) => this.onKeyPress(event))
+
     this.state = {
       home: true,
       modeValue:'Decrypt',
       decrypt:true,
-      letters:TEMP_LETTERS,
       searchSelection:-1,
+      message:'',
+      displayMessage:'',
+      key:[],
+      displayKey:formatKey([]),
     };
+  }
+
+  /* -------------- Change State ------------------- */
+
+  updateKey(val) {
+    this.setState({
+      key:val,
+      displayKey:formatKey(val),
+    });
+  }
+
+  updateMessage(val) {
+    val = processMessage(val);
+    this.setState({
+      message:val,
+      displayMessage:toNGram(val, N_GRAM),
+    });
   }
 
   updateMode(val){
@@ -504,6 +421,8 @@ class App extends React.Component {
     });
   }
 
+  /* -------- Home Page ------------------ */
+  
   handleBreak() {
     this.setHome(!this.state.home);
   }
@@ -512,14 +431,26 @@ class App extends React.Component {
     alert(i);
   }
 
+  handleChangeMode(event) {
+    this.updateMode(event.target.value);
+  }
+
+  handleEditMessage(event) {
+    this.updateMessage(event.target.value);
+  }
+
+  onKeyPress(event) {
+    alert(event.code);
+  }
+
+  /* ---------------- Break Page -------------- */
+
   handleSelectSearch(i) {
     alert(i);
     this.updateSearchSelection(i);
   }
 
-  handleChangeMode(event) {
-    this.updateMode(event.target.value);
-  }
+  /* ------------------ App ------------------- */
 
   renderPage() {
     if(this.state.home) {
@@ -529,10 +460,11 @@ class App extends React.Component {
               handleBreak={()=> this.handleBreak()}
               modeValue={this.state.modeValue}
               decrypt={this.state.decrypt}
-              plaintext={this.state.letters}
-              cyphertext={TEMP_UI}
+              keyVal={this.state.displayKey}
               handleKeyDisplay={(i) => this.handleKeyDisplay(i)}
               handleChangeMode={(event)=>this.handleChangeMode(event)}
+              handleEditMessage={(event)=>this.handleEditMessage(event)}
+              displayMessage={this.state.displayMessage}
             >
             </HomeGrid>
           </Box>
@@ -562,93 +494,27 @@ class App extends React.Component {
 }
 
 /**
- * Returns an array with the frequencies of every period-th character,
- * starting at the positon character in the message
+ * Formats the key
+ * @param {String} key the key to be formated
+ */
+function formatKey(key) {
+  let formatedKey = Array(LEN_ALPHABET).fill('-');
+  for(let i = 0; i < key.length; i++){
+    if(key[i]) {
+      formatedKey[i] = key[i];
+    }
+  }
+  return formatedKey;
+}
+
+/**
+ * Returns an array with the frequencies of the message
  * @param {String} message the message to be looked at
- * @param {int} period the length of the key
- * @param {int} position the character we want in the key
  */
 function getFreq(message, period, position) {
   let output = Array(LEN_ALPHABET).fill(0);
-  let total = 0;
-  if(period === 0) {
-    return output;
-  }
-  for(let i = position; i < message.length; i += period) {
+  for(let i = 0; i < message.length; i ++) {
     output[message.charCodeAt(i) - A_CODE]++;
-    total++;
-  }
-  if(total > 0) {
-    for(let i = 0; i < output.length; i++){
-      output[i] = (1.0 *output[i]) / (1.0 *total);
-    }
-  }
-  return output;
-}
-
-/**
- * Bolds every nth character in the string
- * @param {String} string 
- * @param {int} n in range [0, string.length-1]
- */
-function boldN(string, n, period) {
-  let output = '';
-  for(let i = 0; i < string.length; i++) {
-    if( i  % period === parseInt(n)) {
-      output += '**' + string.charAt(i) + '**';
-    } else {
-      output += string.charAt(i);
-    }
-  }
-  return output;
-}
-
-/**
- * Formats and returns an array with letter frequencies
- * @param {float[]} freq
- * @param {int} offset
- */
-function freqArray(freq, offset) {
-  let data = Array();
-  for(let i = 0; i < LEN_ALPHABET; i++) {
-    //I don't know why it needs an inverse offset
-    let inverseOffset = (i - parseInt(offset) + LEN_ALPHABET) % LEN_ALPHABET;
-    let globalName = String.fromCharCode(A_CODE + i);
-    let localName = String.fromCharCode(A_CODE + inverseOffset);
-    data.push({'globalName': globalName, 'globalFreq': ENGLISH_FREQ[i], 'localName': localName, 'localFreq': freq[inverseOffset]});
-  }
-  return data;
-}
-
-/**
- * Decrypts a given cyphertext and key using a vigenere cypher
- * @param {String} cyphertext the message to decrypt. Must be in character set [A-Z]
- * @param {String} key the key used to decrypt message. 
- *                     Must be longer than 0, and in charater set [A-Z] 
- * @returns decrypted messaged as a string
- */
-function decryptVigenere (cyphertext, key) {
-  if(key.length <= 0) {
-    return cyphertext;
-  }
-  let output = '';
-  for(let i = 0; i < cyphertext.length; i++) {
-    output += String.fromCharCode(A_CODE + (( (cyphertext.charCodeAt(i) - A_CODE) - (key.charCodeAt(i % key.length) - A_CODE) + LEN_ALPHABET) % LEN_ALPHABET));
-  }
-  return output;
-}
-
-/**
- * Encripts a given plaintext and key using a vigenere cypher
- * @param {String} plaintext the message to encrypt. Must be in character set [A-Z]
- * @param {String} key the key used to encrypt message. 
- *                     Must be longer than 0, and in charater set [A-Z] 
- * @returns encrypted messaged as a string
- */
-function encryptVigenere (plaintext, key) {
-  let output = '';
-  for(let i = 0; i < plaintext.length; i++) {
-    output += String.fromCharCode(A_CODE + (( (plaintext.charCodeAt(i) - A_CODE) + (key.charCodeAt(i % key.length) - A_CODE) ) % LEN_ALPHABET));
   }
   return output;
 }
@@ -677,11 +543,11 @@ function toNGram(message, n) {
  * @returns processed string
  */
 function processMessage(message) {
-  message = message.toUpperCase();
   let output = '';
-  for(let i = 0; i < message.length; i++) {
+  let tempMessage = message.toUpperCase();
+  for(let i = 0; i < tempMessage.length; i++) {
     //concat char to the end of output
-    let char = message.charCodeAt(i);
+    let char = tempMessage.charCodeAt(i);
     if( A_CODE <= char && char <= Z_CODE ) {
       output += message.charAt(i);
     }
