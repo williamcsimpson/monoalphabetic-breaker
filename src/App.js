@@ -12,6 +12,12 @@ import {
   Markdown,
   RadioButtonGroup,
   CheckBox,
+  Table,
+  TableHeader,
+  TableRow,
+  TableCell,
+  TableBody,
+  RadioButton,
 } from 'grommet';
 import {
   Add,
@@ -19,6 +25,9 @@ import {
   Previous,
   Next,
 } from 'grommet-icons'
+
+const TEMP_LETTERS = ['A', 'B', 'C', '-', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
 
 const A_CODE = 65;
 const Z_CODE = 90;
@@ -42,8 +51,271 @@ const theme = {
     },
   },
 };
+/*
+class KeyDisplay extends React.Component {
+  constructor(props) {
+    super(props);
 
+    let fillVals = Array(LEN_ALPHABET).fill(true);
+
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      let char = 0;
+      if(props.decrypt){
+        char = props.plaintext[i].charCodeAt(0);
+      } else {
+        char = props.cyphertext[i].toUpperCase().charCodeAt(0);
+      }
+      if(A_CODE <= char && char <= Z_CODE) {
+        fillVals[char-A_CODE] = false;
+      }
+    }
+
+    this.state = {
+      decrypt:props.decrypt,
+      cyphertext:props.cyphertext,
+      plaintext:props.plaintext,
+      onClick:props.onClick,
+      fill:fillVals
+    };
+  }
+
+  renderLabel() {
+    return(
+      <Box>
+        <Box
+          border='true'
+          alignContent='center'
+          justify='center'
+        >
+          <Text>PLAINTEXT</Text>
+        </Box>
+        <Box
+          border='true'
+          alignContent='center'
+          justify='center'
+        >
+          <Text>cyphertext</Text>
+        </Box>
+      </Box>
+    )
+  }
+
+  renderDisplayBox(i) {
+    return (
+      <Box
+        border='true'
+        alignContent='center'
+        justify='center'
+        align='center'
+        background={this.state.fill[i] ? 'light-4': ''}
+      >
+        <Text>{ this.state.decrypt ? this.state.cyphertext[i]: this.state.plaintext[i]}</Text>
+      </Box>
+
+    );
+  }
+  renderUIBox(i) {
+    return (
+      <Box
+        onClick={()=>(this.state.onClick(i))}
+        border='true'
+        alignContent='center'
+        justify='center'
+        align='center'
+      >
+        <Text>{this.state.decrypt ? this.state.plaintext[i] : this.state.cyphertext[i]}</Text>
+      </Box>
+
+    );
+  }
+
+  renderCol(i) {
+    if(this.state.decrypt) {
+      return(
+        <Box>
+          {this.renderUIBox(i)}
+          {this.renderDisplayBox(i)}
+        </Box>
+      );
+    }
+    return(
+      <Box>
+        {this.renderDisplayBox(i)}
+        {this.renderUIBox(i)}
+      </Box>
+    );
+  }
+
+  render() {
+    let key = [];
+    for(let i =0; i < LEN_ALPHABET; i++){
+      key.push(this.renderCol(i));
+    }
+    return(
+      <Box direction='row'>
+        {this.renderLabel()}
+        {key}
+      </Box>
+    );
+  }
+}
+*/
+/* ----------------------------------------------- */
+
+function KeyDisplay(props) {
+    let fillVals = Array(LEN_ALPHABET).fill(true);
+
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      let char = 0;
+      if(props.decrypt){
+        char = props.plaintext[i].charCodeAt(0);
+      } else {
+        char = props.cyphertext[i].toUpperCase().charCodeAt(0);
+      }
+      if(A_CODE <= char && char <= Z_CODE) {
+        fillVals[char-A_CODE] = false;
+      }
+    }
+    
+    let key = [];
+    for(let i =0; i < LEN_ALPHABET; i++){
+      key.push(renderCol(i, props.plaintext[i], props.cyphertext[i], fillVals[i], props.decrypt, props.onClick));
+    }
+    return(
+      <Box direction='row'>
+        {renderLabel()}
+        {key}
+      </Box>
+    );
+}
+
+function renderUIBox(i, text, onClick) {
+  return (
+    <Box
+      onClick={()=>(onClick(i))}
+      border='true'
+      alignContent='center'
+      justify='center'
+      align='center'
+    >
+      <Text>{text}</Text>
+    </Box>
+
+  );
+}
+
+function renderDisplayBox(i, text, fill) {
+  return (
+    <Box
+      border='true'
+      alignContent='center'
+      justify='center'
+      align='center'
+      background={fill ? 'light-4': ''}
+    >
+      <Text>{text}</Text>
+    </Box>
+
+  );
+}
+
+function renderCol(i, plaintext, cyphertext, fill, decrypt, onClick) {
+  if(decrypt) {
+    return(
+      <Box>
+        {renderUIBox(i, plaintext, onClick)}
+        {renderDisplayBox(i, cyphertext, fill)}
+      </Box>
+    );
+  }
+  return(
+    <Box>
+      {renderDisplayBox(i, plaintext, fill)}
+      {renderUIBox(i, cyphertext, onClick)}
+    </Box>
+  );
+}
+
+function renderLabel() {
+  return(
+    <Box>
+      <Box
+        border='true'
+        alignContent='center'
+        justify='center'
+      >
+        <Text>PLAINTEXT</Text>
+      </Box>
+      <Box
+        border='true'
+        alignContent='center'
+        justify='center'
+      >
+        <Text>cyphertext</Text>
+      </Box>
+    </Box>
+  )
+}
+
+/* ----------------------------------------------- */
+
+function ResultTable(props) {
+  let body = [];
+  for(let i = 0; i < 10; i++) {
+    body.push(
+      <TableRow>
+        <TableCell scope='row'>
+          <RadioButton
+            onChange={()=>props.onChange(i)}
+            checked={i===parseInt(props.selectedButton)} 
+          />
+        </TableCell>
+        <TableCell scope='row'>
+          {props.pattern[i]}
+        </TableCell>
+        <TableCell scope='row'>
+          {props.chisquare[i]}
+        </TableCell>
+        <TableCell scope='row'>
+          {props.freq[i]}
+        </TableCell>
+        <TableCell scope='row'>
+          {props.conflict[i]}
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return(
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableCell scope='col' border='bottom'>
+          </TableCell>
+          <TableCell scope='col' border='bottom'>
+            Pattern
+          </TableCell>
+          <TableCell scope='col' border='bottom'>
+            Chi Square
+          </TableCell>
+          <TableCell scope='col' border='bottom'>
+            Frequency
+          </TableCell>
+          <TableCell scope='col' border='bottom'>
+            Confilicts
+          </TableCell>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {body}
+      </TableBody>
+    </Table>
+  );
+}
+
+/* ----------------------------------------------- */
 function HomeGrid(props) { 
+  let decryptMode = props.decrypt ? true : false;
   return (
     <Grid
       areas={[
@@ -73,7 +345,13 @@ function HomeGrid(props) {
         />
       </Box>
       <Box gridArea='key'>
-        <Text>KEY here</Text>
+        <KeyDisplay 
+          decrypt={props.decrypt}
+          plaintext={props.plaintext}
+          cyphertext={props.cyphertext}
+          onClick={props.handleKeyDisplay}
+
+        />
       </Box>
       <Box gridArea='mode'>
         <RadioButtonGroup
@@ -113,6 +391,7 @@ function HomeGrid(props) {
     </Grid>
   );
 }
+
 
 function BreakGrid(props) { 
   return (
@@ -174,7 +453,14 @@ function BreakGrid(props) {
         />
       </Box>
       <Box gridArea='results'>
-        <Text>Results go here</Text>
+        <ResultTable 
+          onChange={props.handleSelectSearch}
+          selectedButton={props.selectedButton}
+          pattern={TEMP_LETTERS}
+          chisquare={TEMP_LETTERS}
+          freq={TEMP_LETTERS}
+          conflict={TEMP_LETTERS}
+        />
       </Box>
     </Grid>
   );
@@ -185,10 +471,33 @@ class App extends React.Component {
     super(props);
     this.state = {
       home: true,
-      modeValue:'Decrypt'
+      modeValue:'Decrypt',
+      decrypt:true,
+      letters:TEMP_LETTERS,
+      searchSelection:-1,
     };
   }
 
+  updateMode(val){
+    if(val === 'Decrypt') {
+      this.setState({
+        modeValue:val,
+        decrypt:true,
+      });
+    } else {
+      this.setState({
+        modeValue:val,
+        decrypt:false,
+      });
+    }
+  }
+
+  updateSearchSelection(val) {
+    this.setState({
+      searchSelection:val,
+    });
+  }
+  
   setHome(val) {
     this.setState({
       home:val,
@@ -199,6 +508,19 @@ class App extends React.Component {
     this.setHome(!this.state.home);
   }
 
+  handleKeyDisplay(i) {
+    alert(i);
+  }
+
+  handleSelectSearch(i) {
+    alert(i);
+    this.updateSearchSelection(i);
+  }
+
+  handleChangeMode(event) {
+    this.updateMode(event.target.value);
+  }
+
   renderPage() {
     if(this.state.home) {
       return(
@@ -206,6 +528,11 @@ class App extends React.Component {
             <HomeGrid
               handleBreak={()=> this.handleBreak()}
               modeValue={this.state.modeValue}
+              decrypt={this.state.decrypt}
+              plaintext={this.state.letters}
+              cyphertext={TEMP_UI}
+              handleKeyDisplay={(i) => this.handleKeyDisplay(i)}
+              handleChangeMode={(event)=>this.handleChangeMode(event)}
             >
             </HomeGrid>
           </Box>
@@ -214,6 +541,8 @@ class App extends React.Component {
         return(
           <Box width='large' alignSelf='center'>
             <BreakGrid 
+              handleSelectSearch={(i) => this.handleSelectSearch(i)}
+              selectedButton={this.state.searchSelection}
             >
             </BreakGrid>
           </Box>
