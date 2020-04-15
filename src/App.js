@@ -32,6 +32,10 @@ const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'
 
 const N_GRAM = 5;
 
+const LOWERCASE_A_CODE = 97;
+const DASH = '-';
+const BACKSPACE_CODE = 8;
+const DEL_CODE = 46;
 const A_CODE = 65;
 const Z_CODE = 90;
 const SPACE = ' ';
@@ -61,6 +65,9 @@ function KeyDisplay(props) {
     let fillVals = Array(LEN_ALPHABET).fill(true);
 
     for(let i = 0; i < LEN_ALPHABET; i++) {
+      if(props.keyVal[i] === DASH) {
+        continue;
+      }
       let char = 0;
       char = props.keyVal[i].toUpperCase().charCodeAt(0);
       if(A_CODE <= char && char <= Z_CODE) {
@@ -71,9 +78,9 @@ function KeyDisplay(props) {
     let key = [];
     for(let i =0; i < LEN_ALPHABET; i++){
       if(props.decrypt) {
-          key.push(renderCol(i, props.keyVal[i], LOWERCASE_LETTERS[i], fillVals[i], props.decrypt, props.onClick));
+          key.push(renderCol(i, props.keyVal[i], LOWERCASE_LETTERS[i], fillVals[i], props.decrypt, props.onClick, parseInt(props.focused) === i));
       } else {
-          key.push(renderCol(i,UPPERCASE_LETTERS[i], props.keyVal[i], fillVals[i], props.decrypt, props.onClick));
+          key.push(renderCol(i,UPPERCASE_LETTERS[i], props.keyVal[i], fillVals[i], props.decrypt, props.onClick, parseInt(props.focused) === i));
       }
     }
     return(
@@ -84,14 +91,16 @@ function KeyDisplay(props) {
     );
 }
 
-function renderUIBox(i, text, onClick) {
+function renderUIBox(i, text, onClick, focused) {
   return (
     <Box
       onClick={()=>(onClick(i))}
+      focusIndicator={false}
       border='true'
       alignContent='center'
       justify='center'
       align='center'
+      background={focused ? 'accent-1' : ''}
     >
       <Text>{text}</Text>
     </Box>
@@ -114,11 +123,11 @@ function renderDisplayBox(i, text, fill) {
   );
 }
 
-function renderCol(i, plaintext, cyphertext, fill, decrypt, onClick) {
+function renderCol(i, plaintext, cyphertext, fill, decrypt, onClick, focused) {
   if(decrypt) {
     return(
       <Box>
-        {renderUIBox(i, plaintext, onClick)}
+        {renderUIBox(i, plaintext, onClick, focused)}
         {renderDisplayBox(i, cyphertext, fill)}
       </Box>
     );
@@ -126,7 +135,7 @@ function renderCol(i, plaintext, cyphertext, fill, decrypt, onClick) {
   return(
     <Box>
       {renderDisplayBox(i, plaintext, fill)}
-      {renderUIBox(i, cyphertext, onClick)}
+      {renderUIBox(i, cyphertext, onClick, focused)}
     </Box>
   );
 }
@@ -210,7 +219,6 @@ function ResultTable(props) {
 
 /* ----------------------------------------------- */
 function HomeGrid(props) { 
-  let decryptMode = props.decrypt ? true : false;
   return (
     <Grid
       areas={[
@@ -237,6 +245,7 @@ function HomeGrid(props) {
           name='TextInput'
           spellCheck='false'
           focus={false}
+          onClick={props.handleSelectMessage}
         />
       </Box>
       <Box gridArea='key'>
@@ -244,7 +253,7 @@ function HomeGrid(props) {
           decrypt={props.decrypt}
           keyVal={props.keyVal}
           onClick={props.handleKeyDisplay}
-
+          focused={props.focusedBox}
         />
       </Box>
       <Box gridArea='mode'>
@@ -373,12 +382,25 @@ class App extends React.Component {
       searchSelection:-1,
       message:'',
       displayMessage:'',
-      key:[],
+      key:Array(LEN_ALPHABET).fill(''),
       displayKey:formatKey([]),
+      activeIdx:-1,
     };
   }
 
   /* -------------- Change State ------------------- */
+
+  updateKeyVal(val, idx) {
+    let newKey = this.state.key;
+    newKey[idx] = val;
+    this.updateKey(newKey)
+  }
+
+  updateActiveIdx(val){
+    this.setState({
+      activeIdx:val
+    });
+  }
 
   updateKey(val) {
     this.setState({
@@ -397,11 +419,13 @@ class App extends React.Component {
 
   updateMode(val){
     if(val === 'Decrypt') {
+      this.keyToDecrypt();
       this.setState({
         modeValue:val,
         decrypt:true,
       });
     } else {
+      this.keyToEncrypt();
       this.setState({
         modeValue:val,
         decrypt:false,
@@ -428,11 +452,12 @@ class App extends React.Component {
   }
 
   handleKeyDisplay(i) {
-    alert(i);
+    this.updateActiveIdx(i);
   }
 
   handleChangeMode(event) {
     this.updateMode(event.target.value);
+    this.clearFocus();
   }
 
   handleEditMessage(event) {
@@ -440,7 +465,52 @@ class App extends React.Component {
   }
 
   onKeyPress(event) {
-    alert(event.code);
+    if(this.state.activeIdx >= 0) {
+      if( A_CODE <= event.which && event.which <= Z_CODE && this.codeNotInKey(event.which)) {
+          let char = String.fromCharCode(event.which);
+          if(!this.state.decrypt) {
+            char = char.toLowerCase();
+          }
+          this.updateKeyVal(char, this.state.activeIdx)
+          this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
+      } else if(event.which === DEL_CODE || event.which === BACKSPACE_CODE) {
+          this.updateKeyVal('', this.state.activeIdx);
+          this.updateActiveIdx((this.state.activeIdx - 1) % LEN_ALPHABET);
+      }
+    }
+  }
+
+  codeNotInKey(code) {
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      if(this.state.key[i] && this.state.key[i].toUpperCase().charCodeAt(0) == code) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  clearFocus() {
+    this.updateActiveIdx(-1);
+  }
+
+  keyToDecrypt() {
+    let newKey = Array(LEN_ALPHABET).fill(''); 
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      if(this.state.key[i]) {
+        newKey[this.state.key[i].charCodeAt(0) - LOWERCASE_A_CODE] = String.fromCharCode(i + A_CODE);
+      }
+    }
+    this.updateKey(newKey);
+  }
+
+  keyToEncrypt() {
+    let newKey = Array(LEN_ALPHABET).fill(''); 
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      if(this.state.key[i]) {
+        newKey[this.state.key[i].charCodeAt(0) - A_CODE] = String.fromCharCode(i + LOWERCASE_A_CODE);
+      }
+    }
+    this.updateKey(newKey);
   }
 
   /* ---------------- Break Page -------------- */
@@ -464,7 +534,9 @@ class App extends React.Component {
               handleKeyDisplay={(i) => this.handleKeyDisplay(i)}
               handleChangeMode={(event)=>this.handleChangeMode(event)}
               handleEditMessage={(event)=>this.handleEditMessage(event)}
+              handleSelectMessage={()=>this.clearFocus()}
               displayMessage={this.state.displayMessage}
+              focusedBox={this.state.activeIdx}
             >
             </HomeGrid>
           </Box>
@@ -498,7 +570,7 @@ class App extends React.Component {
  * @param {String} key the key to be formated
  */
 function formatKey(key) {
-  let formatedKey = Array(LEN_ALPHABET).fill('-');
+  let formatedKey = Array(LEN_ALPHABET).fill(DASH);
   for(let i = 0; i < key.length; i++){
     if(key[i]) {
       formatedKey[i] = key[i];
@@ -511,7 +583,7 @@ function formatKey(key) {
  * Returns an array with the frequencies of the message
  * @param {String} message the message to be looked at
  */
-function getFreq(message, period, position) {
+function getFreq(message) {
   let output = Array(LEN_ALPHABET).fill(0);
   for(let i = 0; i < message.length; i ++) {
     output[message.charCodeAt(i) - A_CODE]++;
