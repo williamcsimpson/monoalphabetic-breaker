@@ -26,6 +26,12 @@ import {
   Next,
 } from 'grommet-icons'
 
+const RANDOM_PLAINTEXT = ['HACKISADISPLAYORIENTEDDUNGEONSDRAGONSLIKEGAMEBOTHDISPLAYANDCOMMANDSTRUCTURERESEMBLEROGUEFORAGAMEWITHTHESAMESTRUCTUREBUTENTIRELYDIFFERENTDISPLAYAREALCAVEINSTEADOFDULLRECTANGLESTRYQUESTTOGETSTARTEDYOUREALLYONLYNEEDTOKNOWTWOCOMMANDSTHECOMMANDWILLGIVEYOUALISTOFTHEAVAILABLECOMMANDSANDTHECOMMANDWILLIDENTIFYTHETHINGSYOUSEEONTHESCREENTOWINTHEGAMEASOPPOSEDTOMERELYPLAYINGTOBEATOTHERPEOPLEHIGHSCORESYOUMUSTLOCATETHEAMULETOFYENDORWHICHISSOMEWHEREBELOWTHETWENTIETHLEVELOFTHEDUNGEONANDGETITOUTNOBODYHASACHIEVEDTHISYETANDIFSOMEBODYDOESHEWILLPROBABLYGODOWNINHISTORYASAHEROAMONGHEROSWHENTHEGAMEENDSEITHERBYYOURDEATHWHENYOUQUITORIFYOUESCAPEFROMTHECAVESHACKWILLGIVEYOUAFRAGMENTOFTHELISTOFTOPSCORERSTHESCORINGISBASEDONMANYASPECTSOFYOURBEHAVIOURBUTAROUGHESTIMATEISOBTAINEDBYTAKINGTHEAMOUNTOFGOLDYOUVEFOUNDINTHECAVEPLUSFOURTIMESYOURREALEXPERIENCEPRECIOUSSTONESMAYBEWORTHALOTOFGOLDWHENBROUGHTTOTHEEXITTHEREISATENPERCENTPENALTYFORGETTINGYOURSELFKILLED',
+                          'THEMOSTNOTICEABLEEFFECTTHISCOMMUNICATIONHASONTHEGAMEISTHEDELAYINMOVINGSUPPOSEAPLAYERTYPESAMOVEFORHISSHIPANDHITSRETURNWHATHAPPENSTHENTHEPLAYERPROCESSSAVESUPMESSAGESTOBEWRITTENTOTHETEMPORARYFILEINABUFFEREVERYSEVENSECONDSORSOTHEPLAYERPROCESSGETSEXCLUSIVEACCESSTOTHETEMPORARYFILEANDWRITESOUTITSBUFFERTOTHEFILETHEDRIVERRUNNINGASYNCHRONOUSLYMUSTREADINTHEMOVEMENTCOMMANDPROCESSITANDWRITEOUTTHERESULTSTHISTAKESTWOEXCLUSIVEACCESSESTOTHETEMPORARYFILEFINALLYWHENTHEPLAYERPROCESSGETSAROUNDTODOINGANOTHERSEVENSECONDUPDATETHERESULTSOFTHEMOVEAREDISPLAYEDONTHESCREENHENCEEVERYMOVEMENTREQUIRESFOUREXCLUSIVEACCESSESTOTHETEMPORARYFILEANYWHEREFROMSEVENTOTWENTYONESECONDSDEPENDINGUPONASYNCHRONYBEFORETHEPLAYERSEESTHERESULTSOFHISMOVESAFTERTHEPLAYERWRITESOUTAFIRSTMOVEMENTMESSAGEASECONDMOVEMENTCOMMANDCANTHENBEISSUEDTHEFIRSTMESSAGEWILLBEINTHETEMPORARYFILEWAITINGFORTHEDRIVERANDTHESECONDWILLBEINTHEFILEBUFFERWAITINGTOBEWRITTENTOTHEFILETHUSBYALWAYSTYPINGMOVESATURNAHEADOFTHETIMETHEPLAYERCANSAILAROUNDQUITEQUICKLY',
+                          'IFYOUHAVENEVERPLAYEDSOLITAIREBEFOREITISRECOMMENDEDTHATYOUCONSULTASOLITAIREINSTRUCTIONBOOKINCANFIELDTABLEAUCARDSMAYBEBUILTONEACHOTHERDOWNWARDINALTERNATECOLORSANENTIREPILEMUSTBEMOVEDASAUNITINBUILDINGTOPCARDSOFTHEPILESAREAVAILABLETOBEPLAYEDONFOUNDATIONSBUTNEVERINTOEMPTYSPACESSPACESMUSTBEFILLEDFROMTHESTOCKTHETOPCARDOFTHESTOCKALSOISAVAILABLETOBEPLAYEDONFOUNDATIONSORBUILTONTABLEAUPILESAFTERTHESTOCKISEXHAUSTEDTABLEAUSPACESMAYBEFILLEDFROMTHETALONANDTHEPLAYERMAYKEEPTHEMOPENUNTILHEWISHESTOUSETHEMCARDSAREDEALTFROMTHEHANDTOTHETALONBYTHREESANDTHISREPEATSUNTILTHEREARENOMORECARDSINTHEHANDORTHEPLAYERQUITSTOHAVECARDSDEALTONTOTHETALONTHEPLAYERTYPESHTFORHISMOVEFOUNDATIONBASECARDSAREALSOAUTOMATICALLYMOVEDTOTHEFOUNDATIONWHENTHEYBECOMEAVAILABLE',
+                          'ROBOTSPITSYOUAGAINSTEVILROBOTSWHOARETRYINGTOKILLYOUWHICHISWHYTHEYAREEVILFORTUNATELYFORYOUEVENTHOUGHTHEYAREEVILTHEYARENOTVERYBRIGHTANDHAVEAHABITOFBUMPINGINTOEACHOTHERTHUSDESTROYINGTHEMSELVESINORDERTOSURVIVEYOUMUSTGETTHEMTOKILLEACHOTHEROFFSINCEYOUHAVENOOFFENSIVEWEAPONRYSINCEYOUARESTUCKWITHOUTOFFENSIVEWEAPONRYYOUAREENDOWEDWITHONEPIECEOFDEFENSIVEWEAPONRYATELEPORTATIONDEVICEWHENTWOROBOTSRUNINTOEACHOTHERORAJUNKPILETHEYDIEIFAROBOTRUNSINTOYOUYOUDIEWHENAROBOTDIESYOUGETTENPOINTSANDWHENALLTHEROBOTSDIEYOUSTARTONTHENEXTFIELDTHISKEEPSUPUNTILTHEYFINALLYGETYOUONLYFIVESCORESAREALLOWEDPERUSERONTHESCOREFILEIFYOUMAKEITINTOTHESCOREFILEYOUWILLBESHOWNTHELISTATTHEENDOFTHEGAMEIFANALTERNATESCOREFILEISSPECIFIEDTHATWILLBEUSEDINSTEADOFTHESTANDARDFILEFORSCORESY',
+                          'ATTHESTARTOFTHEFIRSTGAMETHEPROGRAMASKSTHEPLAYERTOCUTTHEDECKTODETERMINEWHOGETSTHEFIRSTCRIBTHEUSERSHOULDRESPONDWITHANUMBERBETWEENZEROANDFIFTYONEINDICATINGHOWMANYCARDSDOWNTHEDECKISTOBECUTTHEPLAYERWHOCUTSTHELOWERRANKEDCARDGETSTHEFIRSTCRIBIFMORETHANONEGAMEISPLAYEDTHELOSEROFTHEPREVIOUSGAMEGETSTHEFIRSTCRIBINTHECURRENTGAMEFOREACHHANDTHEPROGRAMFIRSTPRINTSTHEPLAYERSHANDWHOSECRIBITISANDTHENASKSTHEPLAYERTODISCARDTWOCARDSINTOTHECRIBTHECARDSAREPROMPTEDFORONEPERLINEANDARETYPEDASEXPLAINEDBELOWAFTERCUTTINGTHEDECKPLAYSTARTSWITHTHENONDEALERTHEPERSONWHODOESNTHAVETHECRIBLEADINGTHEFIRSTCARDPLAYCONTINUESASPERCRIBBAGEUNTILALLCARDSAREEXHAUSTEDTHEPROGRAMKEEPSTRACKOFTHESCORINGOFALLPOINTSANDTHETOTALOFTHECARDSONTHETABLEAFTERPLAYTHEHANDSARESCOREDTHEPROGRAMREQUESTSTHEPLAYERTOSCOREHISHANDANDTHECRIBIFITISHISBYPRINTINGOUTTHEAPPROPRIATECARDSANDTHECUTCARDENCLOSEDINBRACKETSPLAYCONTINUESUNTILONEPLAYERREACHESTHEGAMELIMITACARRIAGERETURNWHENANUMERICINPUTISEXPECTEDISEQUIVALENTTOTYPINGTHELOWESTLEGALVALUEWHENCUTTINGTHEDECKTHISISEQUIVALENTTOCHOOSINGTHETOPCARD'];
+
 const UPPERCASE_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 const LOWERCASE_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
@@ -35,6 +41,7 @@ const N_GRAM = 5;
 const RIGHT_ARROW_CODE = 39;
 const LEFT_ARROW_CODE = 37;
 const LOWERCASE_A_CODE = 97;
+const LOWERCASE_Z_CODE = 122;
 const DASH = '-';
 const BACKSPACE_CODE = 8;
 const DEL_CODE = 46;
@@ -224,13 +231,12 @@ function HomeGrid(props) {
   return (
     <Grid
       areas={[
-        { name: 'text', start: [0, 0], end: [3, 0] },
+        { name: 'text', start: [0, 0], end: [4, 0] },
         { name: 'key', start: [0, 1], end: [3, 1] },
-        { name: 'mode', start: [3, 1], end: [3, 1] },
-        { name: 'randPT', start: [0, 2], end: [0, 2] },
-        { name: 'randCT', start: [1, 2], end: [1, 2] },
-        { name: 'update', start: [2, 2], end: [2, 2] },
-        { name: 'break', start: [3, 2], end: [3, 2] },
+        { name: 'mode', start: [4, 1], end: [4, 1] },
+        { name: 'randPT', start: [0, 2], end: [1, 2] },
+        { name: 'randCT', start: [2, 2], end: [3, 2] },
+        { name: 'break', start: [4, 2], end: [4, 2] },
       ]}
       columns={['auto', 'auto', 'auto', 'auto']}
       rows={['medium', 'xsmall', 'xxsmall']}
@@ -250,7 +256,7 @@ function HomeGrid(props) {
           onClick={props.handleSelectMessage}
         />
       </Box>
-      <Box gridArea='key'>
+      <Box gridArea='key' justify='center'>
         <KeyDisplay 
           decrypt={props.decrypt}
           keyVal={props.keyVal}
@@ -258,18 +264,11 @@ function HomeGrid(props) {
           focused={props.focusedBox}
         />
       </Box>
-      <Box gridArea='mode'>
+      <Box gridArea='mode' justify='center'>
         <RadioButtonGroup
           options={['Decrypt','Encrypt']}
           onChange={props.handleChangeMode}
           value={props.modeValue}
-        />
-      </Box>
-      <Box gridArea='update'>
-        <Button
-          label='Update'
-          size='small'
-          onClick={props.handleUpdate}
         />
       </Box>
       <Box gridArea='break'>
@@ -393,6 +392,22 @@ class App extends React.Component {
   /* -------------- Change State ------------------- */
 
   updateKeyVal(val, idx) {
+    //If removing key val
+    if(this.state.key[idx] && !val) {
+        if(this.state.decrypt) {
+            this.updateMessage(swapChar(this.state.key[idx], String.fromCharCode(idx+LOWERCASE_A_CODE), this.state.message));
+        } else {
+            this.updateMessage(swapChar(this.state.key[idx], String.fromCharCode(idx+A_CODE), this.state.message));
+        }
+    //adding a value  
+    } else if(val) {
+        if(this.state.decrypt) {
+            this.updateMessage(swapChar(String.fromCharCode(idx+LOWERCASE_A_CODE), val, this.state.message));
+        } else {
+            this.updateMessage(swapChar(String.fromCharCode(idx+A_CODE), val, this.state.message));
+        }
+    }
+
     let newKey = this.state.key;
     newKey[idx] = val;
     this.updateKey(newKey)
@@ -477,9 +492,9 @@ class App extends React.Component {
           this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
       } else if(event.which === DEL_CODE || event.which === BACKSPACE_CODE) {
           this.updateKeyVal('', this.state.activeIdx);
-          this.updateActiveIdx((this.state.activeIdx - 1) % LEN_ALPHABET);
+          this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
       } else if(event.which === LEFT_ARROW_CODE) {
-          this.updateActiveIdx((this.state.activeIdx - 1) % LEN_ALPHABET);
+          this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
       } else if(event.which === RIGHT_ARROW_CODE) {
           this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
       }
@@ -506,6 +521,7 @@ class App extends React.Component {
         newKey[this.state.key[i].charCodeAt(0) - LOWERCASE_A_CODE] = String.fromCharCode(i + A_CODE);
       }
     }
+    this.updateMessage(decrypt(newKey, this.state.message));
     this.updateKey(newKey);
   }
 
@@ -516,7 +532,31 @@ class App extends React.Component {
         newKey[this.state.key[i].charCodeAt(0) - A_CODE] = String.fromCharCode(i + LOWERCASE_A_CODE);
       }
     }
+    this.updateMessage(encrypt(newKey, this.state.message));
     this.updateKey(newKey);
+  }
+
+  handleRandomPT() {
+    let newMessage = RANDOM_PLAINTEXT[Math.floor(Math.random() * RANDOM_PLAINTEXT.length)];
+    while( newMessage === this.state.message ) {
+      newMessage = RANDOM_PLAINTEXT[Math.floor(Math.random() * RANDOM_PLAINTEXT.length)];
+    }
+    this.updateMode('Encrypt')
+    this.updateKey(Array(LEN_ALPHABET).fill(''));
+    this.updateMessage(newMessage);
+    this.clearFocus();
+  }
+
+  handleRandomCT() {
+    let newMessage = RANDOM_PLAINTEXT[Math.floor(Math.random() * RANDOM_PLAINTEXT.length)];
+    let key = [...LOWERCASE_LETTERS];
+    key = shuffle(key);
+    newMessage = encrypt(key, newMessage);
+
+    this.updateMode('Decrypt')
+    this.updateKey(Array(LEN_ALPHABET).fill(''));
+    this.updateMessage(newMessage);
+    this.clearFocus();
   }
 
   /* ---------------- Break Page -------------- */
@@ -543,6 +583,8 @@ class App extends React.Component {
               handleSelectMessage={()=>this.clearFocus()}
               displayMessage={this.state.displayMessage}
               focusedBox={this.state.activeIdx}
+              handleRandomPT={()=>this.handleRandomPT()}
+              handleRandomCT={()=>this.handleRandomCT()}
             >
             </HomeGrid>
           </Box>
@@ -569,6 +611,68 @@ class App extends React.Component {
       </Grommet>
     );
   }
+}
+
+/**
+ * encrypts the message
+ * @param {char[]} key 
+ * @param {String} message 
+ */
+function encrypt(key, message) {
+  let output = '';
+  for(let i = 0; i < message.length; i++){
+    if(A_CODE <= message.charCodeAt(i) && message.charCodeAt(i) <= Z_CODE) {
+        let idx = message.charCodeAt(i) - A_CODE;
+        if(key[idx]){
+            output += key[idx];
+        } else {
+            output += message.charAt(i);
+        }
+    } else {
+        output += message.charAt(i);
+    }
+  }
+  return output;
+}
+
+/**
+ * Decrypts the message
+ * @param {char[]} key 
+ * @param {String} message 
+ */
+function decrypt(key, message) {
+  let output = '';
+  for(let i = 0; i < message.length; i++){
+    if(LOWERCASE_A_CODE <= message.charCodeAt(i) && message.charCodeAt(i) <= LOWERCASE_Z_CODE) {
+        let idx = message.charCodeAt(i) - LOWERCASE_A_CODE;
+        if(key[idx]){
+            output += key[idx];
+        } else {
+            output += message.charAt(i);
+        }
+    } else {
+        output += message.charAt(i);
+    }
+  }
+  return output;
+}
+
+/**
+ * encrypts all plaintext chars that match from to cypertext char that maches to
+ * @param {char} from the plaintext
+ * @param {char} to the cypertext
+ * @param {String} message 
+ */
+function swapChar(from, to, message){
+  let output = '';
+  for(let i = 0; i < message.length; i++) {
+    if(message.charAt(i) == from) {
+        output += to;
+    } else {
+        output += message.charAt(i)
+    }
+  }
+  return output;
 }
 
 /**
@@ -631,6 +735,19 @@ function processMessage(message) {
     }
   }
   return output;
+}
+
+/**
+ * Credit to: https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+ * Shuffles array in place. ES6 version
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
 
 export default App;
