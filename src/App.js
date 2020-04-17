@@ -46,6 +46,7 @@ const LOWERCASE_Z_CODE = 122;
 const DASH = '-';
 const BACKSPACE_CODE = 8;
 const DEL_CODE = 46;
+const ENTER_CODE = 13;
 const A_CODE = 65;
 const Z_CODE = 90;
 const SPACE = ' ';
@@ -354,8 +355,8 @@ function BreakGrid(props) {
       </Box>
       <Box gridArea='ok'>
         <Button
-          label='Confirm'
-          onClick={props.handleSearchGo}
+          label={props.searchQuery && props.selectedButton >= 0? 'Confirm' : 'Back'}
+          onClick={props.handleSearchBack}
         />
       </Box>
       <Box gridArea='results'>
@@ -447,6 +448,9 @@ class App extends React.Component {
     let from = page * RESULTS_PER_PAGE;
     let fromText = from + 1;
     let to = page * RESULTS_PER_PAGE + RESULTS_PER_PAGE;
+    if( to > results.length ) {
+      to = results.length;
+    }
     if(results.length == 0) {
       from = 0;
       to = 0;
@@ -551,6 +555,22 @@ class App extends React.Component {
     });
   }
 
+  clearResults() {
+    this.setState({
+      page:0,
+      resultTo:0,
+      resultFrom:0,
+      resultTotal:0,
+      resultPattern:[],
+      resultChisquare:[],
+      resultConflict:[],
+      resultFreq:[],
+      hideConflict:false,
+      queryResultsHideConflict:[],
+      queryResults:[],
+    });
+  }
+
   /* -------- Home Page ------------------ */
   
   handleBreak() {
@@ -565,6 +585,7 @@ class App extends React.Component {
       alert('ERROR: Message could not be encrypted. You have plaintext letters in your message that are not in the key.');
       return;
     }
+    this.clearResults();
     this.updateCypertext(cyphertext);
     this.setHome(!this.state.home);
     this.updateSearchQuery('');
@@ -585,21 +606,25 @@ class App extends React.Component {
 
   onKeyPress(event) {
     if(this.state.activeIdx >= 0 && this.state.home) {
-      if( A_CODE <= event.which && event.which <= Z_CODE && this.codeNotInKey(event.which)) {
-          let char = String.fromCharCode(event.which);
-          if(!this.state.decrypt) {
-            char = char.toLowerCase();
-          }
-          this.updateKeyVal(char, this.state.activeIdx)
-          this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
-      } else if(event.which === DEL_CODE || event.which === BACKSPACE_CODE) {
-          this.updateKeyVal('', this.state.activeIdx);
-          this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
-      } else if(event.which === LEFT_ARROW_CODE) {
-          this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
-      } else if(event.which === RIGHT_ARROW_CODE) {
-          this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
-      }
+        if( A_CODE <= event.which && event.which <= Z_CODE && this.codeNotInKey(event.which)) {
+            let char = String.fromCharCode(event.which);
+            if(!this.state.decrypt) {
+              char = char.toLowerCase();
+            }
+            this.updateKeyVal(char, this.state.activeIdx)
+            this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
+        } else if(event.which === DEL_CODE || event.which === BACKSPACE_CODE) {
+            this.updateKeyVal('', this.state.activeIdx);
+            this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
+        } else if(event.which === LEFT_ARROW_CODE) {
+            this.updateActiveIdx((this.state.activeIdx - 1 + LEN_ALPHABET) % LEN_ALPHABET);
+        } else if(event.which === RIGHT_ARROW_CODE) {
+            this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
+        }
+    } else if(!this.state.home) {
+        if( event.which == ENTER_CODE ) {
+          this.handleGo();
+        }
     }
   }
 
@@ -662,6 +687,24 @@ class App extends React.Component {
   }
 
   /* ---------------- Break Page -------------- */
+
+  handleSearchBack() {
+    if( this.state.searchQuery && this.state.searchSelection >= 0) {
+      let newKey = Array(LEN_ALPHABET).fill('');
+      let pattern = this.state.resultPattern[this.state.searchSelection];
+      for(let i = 0; i < pattern.length; i++) {
+        newKey[pattern.charCodeAt(i) - LOWERCASE_A_CODE] = this.state.searchQuery.charAt(i);
+      }
+      for(let i = 0; i < LEN_ALPHABET; i++) {
+        if( this.state.key[i] && !newKey[i] && !newKey.includes(this.state.key[i]) ) {
+          newKey[i] = this.state.key[i];
+        }
+      }
+      this.updateMessage(decrypt(newKey, this.state.cyphertext));
+      this.updateKey(newKey);
+    }
+    this.setHome(!this.state.home);
+  }
 
   handleToggleConflict(event) {
     this.updateHideConflict(event.target.checked);
@@ -743,7 +786,7 @@ class App extends React.Component {
       for(let j = 0; j < pattern.length; j++ ){
         let idx = pattern.charCodeAt(j) - LOWERCASE_A_CODE;
         let val = searchQuery.charAt(j);
-        if( !key[idx]){
+        if( !key[idx] && !key.includes(val)){
             key[idx] = val;
             cyphertextTotal += this.state.cyphertextFreq[idx];
         } else if(key[idx] !== val){
@@ -774,7 +817,8 @@ class App extends React.Component {
           }
           let conflicts = 0;
           for( let j = 0; j < LEN_ALPHABET; j++ ) {
-            if( key[j] && this.state.key[j] && this.state.key[j] !== '' && key[j] !== this.state.key[j]) {
+            if( key[j] && ( (this.state.key[j] && this.state.key[j] !== key[j]) 
+                       ||   (this.state.key.includes(key[j]) && this.state.key[j] !== key[j]) )) {
               conflicts += 1;
             }
           }
@@ -833,6 +877,7 @@ class App extends React.Component {
               handlePositionNext={() => this.handlePositionNext()}
               handlePositionPrevious={() => this.handlePositionPrevious()}
               handleToggleConflict={(event) => this.handleToggleConflict(event)}
+              handleSearchBack={()=> this.handleSearchBack()}
             >
             </BreakGrid>
           </Box>
