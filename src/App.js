@@ -38,6 +38,7 @@ const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'
 
 const N_GRAM = 5;
 
+const RESULTS_PER_PAGE = 10;
 const RIGHT_ARROW_CODE = 39;
 const LEFT_ARROW_CODE = 37;
 const LOWERCASE_A_CODE = 97;
@@ -49,11 +50,8 @@ const A_CODE = 65;
 const Z_CODE = 90;
 const SPACE = ' ';
 const LEN_ALPHABET = 26;
-const ENGLISH_FREQ = [0.08167, 0.01492, 0.02202, 0.04253, 0.12702, 0.02228, 
-                      0.02015, 0.06094, 0.06966, 0.00153, 0.01292, 0.04025, 
-                      0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987,
-                      0.06327, 0.09356, 0.02758, 0.00978, 0.02560, 0.00150, 
-                      0.01994, 0.00077];
+const ENGLISH_FREQ = [73, 9, 30, 44, 130, 28, 16, 35, 74, 2, 3, 35, 25, 78, 74, 27, 3, 77, 63, 93, 27, 13, 16, 5, 19, 1];
+const ENGLISH_FREQ_TOT = 1000.0;
 
 const theme = {
   global: {
@@ -174,14 +172,13 @@ function renderLabel() {
 
 function ResultTable(props) {
   let body = [];
-  for(let i = 0; i < 10; i++) {
+  for(let i = 0; i < RESULTS_PER_PAGE; i++) {
     body.push(
       <TableRow>
         <TableCell scope='row'>
-          <RadioButton
-            onChange={()=>props.onChange(i)}
-            checked={i===parseInt(props.selectedButton)} 
-          />
+          {props.pattern[i] 
+            ? <RadioButton onChange={()=>props.onChange(i)} checked={i===parseInt(props.selectedButton)} />
+            : ''}
         </TableCell>
         <TableCell scope='row'>
           {props.pattern[i]}
@@ -209,10 +206,10 @@ function ResultTable(props) {
             Pattern
           </TableCell>
           <TableCell scope='col' border='bottom'>
-            Chi Square
+            <Box onClick={props.chisquareClick}>Chi Square</Box>
           </TableCell>
           <TableCell scope='col' border='bottom'>
-            Frequency
+            <Box onClick={props.frequencyClick}>Frequency</Box>
           </TableCell>
           <TableCell scope='col' border='bottom'>
             Confilicts
@@ -304,20 +301,21 @@ function BreakGrid(props) {
         { name: 'search', start: [0, 0], end: [1, 0] },
         { name: 'go', start: [2, 0], end: [2, 0] },
         { name: 'conflict', start: [3, 0], end: [3, 0] },
-        { name: 'searchInfo', start: [0, 1], end: [1, 1] },
-        { name: 'navigation', start: [2, 1], end: [2, 1] },
-        { name: 'ok', start: [3, 1], end: [3, 1] },
-        { name: 'results', start: [0, 2], end: [3, 2] },
+        { name: 'searchInfo', start: [1, 2], end: [2, 2] },
+        { name: 'previous', start: [0, 2], end: [0, 2] },
+        { name: 'next', start: [3, 2], end: [3, 2] },
+        { name: 'ok', start: [3, 3], end: [3, 3] },
+        { name: 'results', start: [0, 1], end: [3, 1] },
       ]}
       columns={['auto', 'auto', 'auto', 'auto']}
-      rows={['xxsmall', 'xxsmall', 'medium']}
+      rows={['xxsmall', 'medium', 'xxsmall', 'xxsmall']}
       gap='small'
       margin='xlarge'
     >
       <Box gridArea='search' alignContent='center' justify='center'> 
         <TextInput
-          onChange = {props.handleSearchEdit}
-          value = {props.searchValue}
+          onChange = {props.handleEditSearch}
+          value = {props.searchQuery}
           placeholder='Search for word...'
           spellCheck='false'
           focus={false}
@@ -326,7 +324,7 @@ function BreakGrid(props) {
       <Box gridArea='go' alignContent='center' justify='center'>
         <Button
           label='Go'
-          onClick={props.handleSearchGo}
+          onClick={props.handleGo}
         />
       </Box>
       <Box gridArea='conflict'alignContent='center' justify='center'> 
@@ -335,22 +333,26 @@ function BreakGrid(props) {
           label="Hide Conflicts"
         />
       </Box>
-      <Box gridArea='searchInfo' alignContent='center' justify='center'> 
-        <Text>Showing X - X of X </Text>
+      <Box gridArea='searchInfo'> 
+    <Text textAlign='center'>Showing {props.resultFrom} - {props.resultTo} </Text> 
+    <Text textAlign='center'> (of {props.resultTotal}) </Text>
       </Box>
-      <Box gridArea='navigation' justify='center' direction='row'> 
+      <Box gridArea='previous'> 
         <Button
           icon={<Previous size='small' />}
-          size='small'
+          label='Prev'
           onClick={props.handlePositionPrevious}
         />
+      </Box>
+      <Box gridArea='next'> 
         <Button
           icon={<Next size='small'/>}
-          size='small'
+          label='Next'
           onClick={props.handlePositionNext}
+          reverse={true}
         />
       </Box>
-      <Box gridArea='ok' alignContent='center' justify='center'>
+      <Box gridArea='ok'>
         <Button
           label='Confirm'
           onClick={props.handleSearchGo}
@@ -360,10 +362,12 @@ function BreakGrid(props) {
         <ResultTable 
           onChange={props.handleSelectSearch}
           selectedButton={props.selectedButton}
-          pattern={UPPERCASE_LETTERS}
-          chisquare={UPPERCASE_LETTERS}
-          freq={UPPERCASE_LETTERS}
-          conflict={UPPERCASE_LETTERS}
+          pattern={props.resultPattern}
+          chisquare={props.resultChisquare}
+          freq={props.resultFreq}
+          conflict={props.resultConflict}
+          frequencyClick={props.frequencyClick}
+          chisquareClick={props.chisquareClick}
         />
       </Box>
     </Grid>
@@ -386,10 +390,87 @@ class App extends React.Component {
       key:Array(LEN_ALPHABET).fill(''),
       displayKey:formatKey([]),
       activeIdx:-1,
+      searchQuery:'',
+      cyphertext:'',
+      cyphertextFreq:[],
+      queryResults:[],
+      page:0,
+      resultPattern:[],
+      resultChisquare:[],
+      resultFreq:[],
+      resultConflict:[],
+      resultFrom:0,
+      resultTo:0,
+      resultTotal:0,
+      hideConflict:false,
+      queryResultsHideConflict:[],
     };
   }
 
   /* -------------- Change State ------------------- */
+
+  updateHideConflict(shouldHide) {
+    this.updateResultDisplay(this.state.page, this.state.queryResults, shouldHide)
+    this.setState({
+      hideConflict:shouldHide
+    });
+  }
+
+  updateQueryResults(val, sortChisquare = true) {
+    if( sortChisquare ) {
+        val = val.sort(this.compareChisquare);
+    } else {
+        val = val.sort(this.compareFreq);
+    }
+    let noConflict = [];
+    for(let i = 0; i < val.length; i++) {
+      if(val[i].conflicts === 0) {
+        noConflict.push(val[i]);
+      }
+    }
+    if(this.state.hideConflict) {
+       this.updateResultDisplay(0, noConflict, false);
+    } else {
+        this.updateResultDisplay(0, val, false);
+    }
+    this.setState({
+      queryResults:val,
+      queryResultsHideConflict:noConflict,
+    });
+  }
+
+  updateResultDisplay(page, results = this.state.queryResults, hideConflict = this.state.hideConflict) {
+    if(hideConflict) {
+      results = this.state.queryResultsHideConflict;
+    }
+    this.updateSearchSelection(-1);
+    let from = page * RESULTS_PER_PAGE;
+    let fromText = from + 1;
+    let to = page * RESULTS_PER_PAGE + RESULTS_PER_PAGE;
+    if(results.length == 0) {
+      from = 0;
+      to = 0;
+      fromText=0;
+    }
+    let pageResults = results.slice(from, to);
+    this.setState({
+      page:page,
+      resultTo:to,
+      resultFrom:fromText,
+      resultTotal:results.length,
+      resultPattern:pageResults.map(a => a.pattern),
+      resultChisquare:pageResults.map(a => (a.chisquare).toFixed(3)),
+      resultConflict:pageResults.map(a => a.conflicts),
+      resultFreq:pageResults.map(a => a.freq),
+    });
+  }
+
+  updateSearchQuery(val) {
+    val = processSearchQuery(val);
+    this.setState({
+      searchQuery:val,
+    });
+  }
 
   updateKeyVal(val, idx) {
     //If removing key val
@@ -462,10 +543,31 @@ class App extends React.Component {
     });
   }
 
+  updateCypertext(val) {
+    this.setState({
+      cyphertext:val,
+      cyphertextFreq:getFreq(val),
+      cyphertextTotal:val.length,
+    });
+  }
+
   /* -------- Home Page ------------------ */
   
   handleBreak() {
+    let cyphertext = '';
+    if(!this.state.decrypt) {
+        cyphertext = encrypt(this.state.key, this.state.message);
+        this.updateMode('Decrypt');
+    } else {
+        cyphertext = encrypt(keyFromDecryptToEncrypt(this.state.key), this.state.message);
+    }
+    if(cyphertext !== cyphertext.toLowerCase()) {
+      alert('ERROR: Message could not be encrypted. You have plaintext letters in your message that are not in the key.');
+      return;
+    }
+    this.updateCypertext(cyphertext);
     this.setHome(!this.state.home);
+    this.updateSearchQuery('');
   }
 
   handleKeyDisplay(i) {
@@ -482,7 +584,7 @@ class App extends React.Component {
   }
 
   onKeyPress(event) {
-    if(this.state.activeIdx >= 0) {
+    if(this.state.activeIdx >= 0 && this.state.home) {
       if( A_CODE <= event.which && event.which <= Z_CODE && this.codeNotInKey(event.which)) {
           let char = String.fromCharCode(event.which);
           if(!this.state.decrypt) {
@@ -503,7 +605,7 @@ class App extends React.Component {
 
   codeNotInKey(code) {
     for(let i = 0; i < LEN_ALPHABET; i++) {
-      if(this.state.key[i] && this.state.key[i].toUpperCase().charCodeAt(0) == code) {
+      if(this.state.key[i] && this.state.key[i].toUpperCase().charCodeAt(0) === code) {
         return false;
       }
     }
@@ -561,9 +663,130 @@ class App extends React.Component {
 
   /* ---------------- Break Page -------------- */
 
-  handleSelectSearch(i) {
-    alert(i);
+  handleToggleConflict(event) {
+    this.updateHideConflict(event.target.checked);
+  }
+
+  handlePositionPrevious() {
+    if(this.state.page > 0) {
+      this.updateResultDisplay(this.state.page - 1);
+    }
+  }
+  
+  handlePositionNext() {
+    if(this.state.page * RESULTS_PER_PAGE + RESULTS_PER_PAGE < this.state.resultTotal) {
+      this.updateResultDisplay(this.state.page + 1);
+    }
+  }
+
+  frequencyClick() {
+    this.updateQueryResults(this.state.queryResults, false);
+  }
+
+  chisquareClick() {
+    this.updateQueryResults(this.state.queryResults, true);
+  }
+
+  compareChisquare(a, b) {
+    if(a.chisquare < b.chisquare) {
+      return -1;
+    }
+    if(a.chisquare > b.chisquare) {
+      return 1;
+    }
+    return 0;
+  }
+
+  compareFreq(a, b) {
+    if(a.freq > b.freq) {
+      return -1;
+    }
+    if(a.freq < b.freq) {
+      return 1;
+    }
+    return 0;
+  }
+
+  handleSelectSearch(i, event) {
     this.updateSearchSelection(i);
+  }
+
+  handleEditSearch(event) {
+    this.updateSearchQuery(event.target.value);
+  }
+
+  handleGo() {
+    const cyphertext = this.state.cyphertext;
+    const searchQuery = this.state.searchQuery;
+    if(!searchQuery){
+      return [];
+    }
+
+    let queryTotal = 0.0;
+    let done = Array(LEN_ALPHABET).fill(false);
+    for( let i = 0; i < searchQuery.length; i++) {
+      let char = searchQuery.charCodeAt(i) - A_CODE;
+      if(!done[char]){
+        done[char] = true;
+        queryTotal += ENGLISH_FREQ[char];
+      }
+    }
+
+    let matches = new Map();
+    //Load all patterns that match the search query into matches, with value equal to the pattern's frequency
+    for(let i = 0; i < cyphertext.length - searchQuery.length + 1; i++) {
+      let pattern = cyphertext.substring(i, i + searchQuery.length);
+      let match = true;
+      let key = Array(LEN_ALPHABET).fill('');
+      let cyphertextTotal = 0;
+
+      for(let j = 0; j < pattern.length; j++ ){
+        let idx = pattern.charCodeAt(j) - LOWERCASE_A_CODE;
+        let val = searchQuery.charAt(j);
+        if( !key[idx]){
+            key[idx] = val;
+            cyphertextTotal += this.state.cyphertextFreq[idx];
+        } else if(key[idx] !== val){
+            match = false;
+            break;
+        }
+      }
+
+      if(!match) {
+        continue;
+      }
+
+      if(matches.has(pattern)) {
+          matches.get(pattern).freq = (parseInt(matches.get(pattern).freq) + 1);      
+      //only computed once per pattern
+      } else {
+          let chisquare = 0;
+          let done = Array(LEN_ALPHABET).fill(false);
+          for( let j = 0; j < pattern.length; j++) {
+            let cyphertextChar = pattern.charCodeAt(j) - LOWERCASE_A_CODE;
+            if(done[cyphertextChar]) {
+              continue;
+            }
+            done[cyphertextChar] = true;
+            let plaintextChar = searchQuery.charCodeAt(j) - A_CODE;
+            let divisor = cyphertextTotal * ( ENGLISH_FREQ[plaintextChar] / (1.0 * queryTotal) );
+            chisquare += Math.pow((this.state.cyphertextFreq[cyphertextChar] - divisor), 2) / (1.0 * divisor);
+          }
+          let conflicts = 0;
+          for( let j = 0; j < LEN_ALPHABET; j++ ) {
+            if( key[j] && this.state.key[j] && this.state.key[j] !== '' && key[j] !== this.state.key[j]) {
+              conflicts += 1;
+            }
+          }
+          matches.set(pattern, {freq:1, pattern:pattern, chisquare:chisquare, conflicts:conflicts});
+      }
+    }
+    let queryResults = [];
+    for( const [key, value] of matches) {
+      queryResults.push(value);
+    }
+
+    this.updateQueryResults(queryResults);
   }
 
   /* ------------------ App ------------------- */
@@ -595,6 +818,21 @@ class App extends React.Component {
             <BreakGrid 
               handleSelectSearch={(i) => this.handleSelectSearch(i)}
               selectedButton={this.state.searchSelection}
+              searchQuery={this.state.searchQuery}
+              handleEditSearch={(event) => this.handleEditSearch(event)}
+              handleGo={() => this.handleGo()}
+              resultConflict={this.state.resultConflict}
+              resultChisquare={this.state.resultChisquare}
+              resultFreq={this.state.resultFreq}
+              resultPattern={this.state.resultPattern}
+              resultFrom={this.state.resultFrom}
+              resultTo={this.state.resultTo}
+              resultTotal={this.state.resultTotal}
+              frequencyClick={() => this.frequencyClick()}
+              chisquareClick={() => this.chisquareClick()}
+              handlePositionNext={() => this.handlePositionNext()}
+              handlePositionPrevious={() => this.handlePositionPrevious()}
+              handleToggleConflict={(event) => this.handleToggleConflict(event)}
             >
             </BreakGrid>
           </Box>
@@ -611,6 +849,16 @@ class App extends React.Component {
       </Grommet>
     );
   }
+}
+
+function keyFromDecryptToEncrypt(key){
+    let newKey = Array(LEN_ALPHABET).fill(''); 
+    for(let i = 0; i < LEN_ALPHABET; i++) {
+      if(key[i]) {
+        newKey[key[i].charCodeAt(0) - A_CODE] = String.fromCharCode(i + LOWERCASE_A_CODE);
+      }
+    }
+    return newKey;
 }
 
 /**
@@ -666,7 +914,7 @@ function decrypt(key, message) {
 function swapChar(from, to, message){
   let output = '';
   for(let i = 0; i < message.length; i++) {
-    if(message.charAt(i) == from) {
+    if(message.charAt(i) === from) {
         output += to;
     } else {
         output += message.charAt(i)
@@ -695,6 +943,7 @@ function formatKey(key) {
  */
 function getFreq(message) {
   let output = Array(LEN_ALPHABET).fill(0);
+  message = message.toUpperCase();
   for(let i = 0; i < message.length; i ++) {
     output[message.charCodeAt(i) - A_CODE]++;
   }
@@ -730,6 +979,24 @@ function processMessage(message) {
   for(let i = 0; i < tempMessage.length; i++) {
     //concat char to the end of output
     let char = tempMessage.charCodeAt(i);
+    if( A_CODE <= char && char <= Z_CODE ) {
+      output += message.charAt(i);
+    }
+  }
+  return output;
+}
+
+/**
+ * Converts message to upper case, removes all characters not in range [A,Z]
+ * @param {String} message the string to be processed
+ * @returns processed string
+ */
+function processSearchQuery(message) {
+  let output = '';
+  message = message.toUpperCase();
+  for(let i = 0; i < message.length; i++) {
+    //concat char to the end of output
+    let char = message.charCodeAt(i);
     if( A_CODE <= char && char <= Z_CODE ) {
       output += message.charAt(i);
     }
