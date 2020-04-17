@@ -5,11 +5,9 @@ import {
   Grid,
   Grommet,
   Main,
-  RangeInput,
   Text,
   TextArea,
   TextInput,
-  Markdown,
   RadioButtonGroup,
   CheckBox,
   Table,
@@ -20,8 +18,6 @@ import {
   RadioButton,
 } from 'grommet';
 import {
-  Add,
-  Subtract,
   Previous,
   Next,
 } from 'grommet-icons'
@@ -34,7 +30,6 @@ const RANDOM_PLAINTEXT = ['HACKISADISPLAYORIENTEDDUNGEONSDRAGONSLIKEGAMEBOTHDISP
 
 const UPPERCASE_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 const LOWERCASE_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-const TEMP_UI = ['e', 'f', 'g', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
 
 const N_GRAM = 5;
 
@@ -52,7 +47,6 @@ const Z_CODE = 90;
 const SPACE = ' ';
 const LEN_ALPHABET = 26;
 const ENGLISH_FREQ = [73, 9, 30, 44, 130, 28, 16, 35, 74, 2, 3, 35, 25, 78, 74, 27, 3, 77, 63, 93, 27, 13, 16, 5, 19, 1];
-const ENGLISH_FREQ_TOT = 1000.0;
 
 const theme = {
   global: {
@@ -451,7 +445,7 @@ class App extends React.Component {
     if( to > results.length ) {
       to = results.length;
     }
-    if(results.length == 0) {
+    if(results.length === 0) {
       from = 0;
       to = 0;
       fromText=0;
@@ -622,7 +616,7 @@ class App extends React.Component {
             this.updateActiveIdx((this.state.activeIdx + 1) % LEN_ALPHABET);
         }
     } else if(!this.state.home) {
-        if( event.which == ENTER_CODE ) {
+        if( event.which === ENTER_CODE ) {
           this.handleGo();
         }
     }
