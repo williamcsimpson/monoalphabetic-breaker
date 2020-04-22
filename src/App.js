@@ -756,7 +756,8 @@ class App extends React.Component {
     const cyphertext = this.state.cyphertext;
     const searchQuery = this.state.searchQuery;
     if(!searchQuery){
-      return [];
+      this.updateQueryResults([]);
+      return;
     }
 
     let queryTotal = 0.0;
