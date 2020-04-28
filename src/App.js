@@ -375,6 +375,8 @@ class App extends React.Component {
     super(props);
 
     document.addEventListener('keyup', (event) => this.onKeyPress(event))
+    document.addEventListener('keypress', (event) => this.stopKeyBehavior(event))
+    document.addEventListener('keydown', (event) => this.stopKeyBehavior(event))
 
     this.state = {
       home: true,
@@ -478,6 +480,13 @@ class App extends React.Component {
             this.updateMessage(swapChar(this.state.key[idx], String.fromCharCode(idx+LOWERCASE_A_CODE), this.state.message));
         } else {
             this.updateMessage(swapChar(this.state.key[idx], String.fromCharCode(idx+A_CODE), this.state.message));
+        }
+    //adding a value  
+    } else if(val) {
+        if(this.state.decrypt) {
+            this.updateMessage(swapChar(String.fromCharCode(idx+LOWERCASE_A_CODE), val, swapChar(this.state.key[idx], String.fromCharCode(idx+LOWERCASE_A_CODE), this.state.message)));
+        } else {
+            this.updateMessage(swapChar(String.fromCharCode(idx+A_CODE), val, swapChar(this.state.key[idx], String.fromCharCode(idx+A_CODE), this.state.message)));
         }
     //adding a value  
     } else if(val) {
@@ -599,7 +608,20 @@ class App extends React.Component {
     this.updateMessage(event.target.value);
   }
 
+  stopKeyBehavior(event) {
+        if( (A_CODE <= event.which && event.which <= Z_CODE && this.state.activeIdx >= 0 && this.state.home)
+        || (event.which === ENTER_CODE && !this.state.home) 
+        || (event.which === BACKSPACE_CODE && this.state.activeIdx >= 0 && this.state.home)
+        || (event.which === DEL_CODE && this.state.activeIdx >= 0 && this.state.home)
+        || (event.which === LEFT_ARROW_CODE && this.state.activeIdx >= 0 && this.state.home)
+        || (event.which === RIGHT_ARROW_CODE && this.state.activeIdx >= 0 && this.state.home)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
   onKeyPress(event) {
+    this.stopKeyBehavior(event);
     if(this.state.activeIdx >= 0 && this.state.home) {
         if( A_CODE <= event.which && event.which <= Z_CODE && this.codeNotInKey(event.which)) {
             let char = String.fromCharCode(event.which);
